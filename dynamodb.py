@@ -1,52 +1,13 @@
 import boto3
 from boto3.dynamodb.conditions import Key
 from typing import List
+from user.user import User
+from user.user_request import UserRequest
+from notification.notification import Notification
+from notification.request_notification import RequestNotification
+from notification.reject_notification import RejectNotification
 
 dynamodb = boto3.resource('dynamodb', endpoint_url="http://localhost:8000")
-
-
-class UserRequest:
-    def __init__(self):
-        self.content = {}
-
-    @property
-    def name(self):
-        return self.content['name']
-
-
-class User:
-    def __init__(self):
-        self.content = {}
-
-    def __str__(self):
-        return str(self.content)
-
-    @property
-    def email(self):
-        return self.content['email']
-
-
-class RequestNotification:
-    def __init__(self, request: UserRequest, approval_users: List[User]):
-        self.content = {
-            'request': request,
-            'approval_users': approval_users,
-            'reference_url': 'https://example.com'
-        }
-
-    @property
-    def to_addresses(self) -> List[str]:
-        return [x.email for x in self.content['approval_users']]
-
-    @property
-    def subject(self):
-        return '承認申請'
-
-    @property
-    def message(self):
-        name = self.content['request'].name
-        url = self.content['reference_url']
-        return f'{name}から申請がありました。\n{url}を確認してください。'
 
 
 class DynamoDbRepository:
@@ -92,12 +53,23 @@ class DynamoDbRepository:
         return DynamoDbRepository._to_domain(items[0]) if items else None
 
 
+class NotificationRepository:
+    @staticmethod
+    def notify(notification: Notification):
+        print(notification.to_addresses)
+        print(notification.subject)
+        print(notification.message)
+
+
 # DAdmin
 admin_request = UserRequest()
 admin_request.content['name'] = 'Hayashi ishiro'
+admin_request.content['email'] = 'hayashi@gmail.com'
+admin_request.content['remarks'] = '事前に確認する情報が足りていません。'
 admin_users = DynamoDbRepository.get_list_by_role('DataLakeAdministrator')
 
-notification = RequestNotification(admin_request, admin_users)
-print(notification.to_addresses)
-print(notification.subject)
-print(notification.message)
+# approve
+NotificationRepository.notify(RequestNotification(admin_request, admin_users))
+
+# reject
+NotificationRepository.notify(RejectNotification(admin_request))
