@@ -3,7 +3,7 @@ from boto3.dynamodb.conditions import Key
 from typing import List
 from user.user import User
 from user.user_request import UserRequest
-from notification.notification import Notification
+from notification.base_notification import BaseNotification
 from notification.request_notification import RequestNotification
 from notification.reject_notification import RejectNotification
 
@@ -55,7 +55,7 @@ class DynamoDbRepository:
 
 class NotificationRepository:
     @staticmethod
-    def notify(notification: Notification):
+    def notify(notification: BaseNotification):
         print(notification.to_addresses)
         print(notification.subject)
         print(notification.message)

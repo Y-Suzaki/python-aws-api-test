@@ -3,7 +3,7 @@ from typing import List
 from base_domain import BaseDomain
 
 
-class Notification(BaseDomain, metaclass=ABCMeta):
+class BaseNotification(BaseDomain, metaclass=ABCMeta):
     @property
     @abstractmethod
     def to_addresses(self) -> List[str]:

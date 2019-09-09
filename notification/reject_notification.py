@@ -1,9 +1,9 @@
 from user.user_request import UserRequest
-from notification.notification import Notification
+from notification.base_notification import BaseNotification
 from typing import List
 
 
-class RejectNotification(Notification):
+class RejectNotification(BaseNotification):
     def __init__(self, request: UserRequest):
         super().__init__()
         self.content = {
