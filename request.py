@@ -2,9 +2,6 @@ from enum import Enum
 from typing import List
 
 
-class RequestFlow:
-    pass
-
 
 class RequestLogType:
     pass
@@ -32,6 +29,12 @@ class UserRepository:
         pass
 
 
+class LoginUserRepository:
+    @staticmethod
+    def get(id):
+        return User()
+
+
 class RequestRepository:
     @staticmethod
     def create():
@@ -43,15 +46,15 @@ class RequestRepository:
 
     @staticmethod
     def get(id: str):
-        pass
+        return RequestLogType()
 
     @staticmethod
     def get_list():
-        pass
+        return RequestLogTypes()
 
     @staticmethod
     def get_list_by_requesting_users(requesting_users: List[str]):
-        pass
+        return RequestLogTypes()
 
 
 class RequestAction(Enum):
@@ -59,3 +62,19 @@ class RequestAction(Enum):
     modify = "modify"
     delete = "delete"
 
+
+class RequestFlow:
+    @staticmethod
+    def get(id):
+        request = RequestRepository.get(id)
+        return request
+
+    @staticmethod
+    def get_list():
+        login_user = LoginUserRepository.get("")
+        if login_user:
+            requests = RequestRepository.get_list()
+        else:
+            users = UserRepository.get_list_by_authentication_user(login_user.id)
+            requests = RequestRepository.get_list_by_requesting_users(users.ids)
+        return requests
