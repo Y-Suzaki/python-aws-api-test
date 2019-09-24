@@ -9,11 +9,11 @@ class UserRole:
 
     @property
     def name(self):
-        return "Admin"
+        return "DataAnalyst"
 
     @property
     def uri(self):
-        return "uri1"
+        return "uri0"
 
 
 class Role(Enum):
@@ -45,8 +45,10 @@ class User:
         for role in self.content['roles']:
             if role['name'] == user_role.name:
                 deleted_uris = [uri for uri in role['uris'] if uri != user_role.uri]
-                if deleted_uris or user_role.name == Role.ADMIN.value or user_role.name == Role.MANAGER:
+                if deleted_uris:
                     updated_roles.append({'name': role['name'], 'uris': deleted_uris})
+                elif not deleted_uris and (user_role.name == Role.ADMIN.value or user_role.name == Role.MANAGER):
+                    updated_roles.append({'name': user_role.name})
             else:
                 updated_roles.append({'name': role['name'], 'uris': role['uris']})
         self.content['roles'] = updated_roles
