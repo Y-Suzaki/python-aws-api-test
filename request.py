@@ -2,79 +2,63 @@ from enum import Enum
 from typing import List
 
 
+class UserRole:
+    @property
+    def id(self):
+        return "001"
 
-class RequestLogType:
-    pass
+    @property
+    def name(self):
+        return "Admin"
+
+    @property
+    def uri(self):
+        return "uri1"
 
 
-class RequestLogTypes:
-    pass
+class Role(Enum):
+    ADMIN = 'Admin'
+    MANAGER = 'Manager'
+    DATA_ANALYST = 'DataAnalyst'
 
 
 class User:
-    @property
-    def id(self):
-        return ""
+    def __init__(self):
+        self.content = {}
+        self.content['roles'] = [
+            {
+                'name': 'Admin',
+                'uris': ['uri1']
+            },
+            {
+                'name': 'Manager',
+                'uris': ['uri0', 'uri1']
+            },
+            {
+                'name': 'DataAnalyst',
+                'uris': ['uri0']
+            }
+        ]
+
+    def delete_role(self, user_role: UserRole):
+        updated_roles = []
+        for role in self.content['roles']:
+            if role['name'] == user_role.name:
+                deleted_uris = [uri for uri in role['uris'] if uri != user_role.uri]
+                if deleted_uris or user_role.name == Role.ADMIN.value or user_role.name == Role.MANAGER:
+                    updated_roles.append({'name': role['name'], 'uris': deleted_uris})
+            else:
+                updated_roles.append({'name': role['name'], 'uris': role['uris']})
+        self.content['roles'] = updated_roles
 
 
-class Users:
-    @property
-    def ids(self):
-        return []
 
 
-class UserRepository:
-    @staticmethod
-    def get_list_by_authentication_user(authentication_user: str) -> Users:
-        pass
 
+user = User()
+user_role = UserRole()
 
-class LoginUserRepository:
-    @staticmethod
-    def get(id):
-        return User()
+print(user.content)
+user.delete_role(user_role)
+print(user.content)
 
-
-class RequestRepository:
-    @staticmethod
-    def create():
-        pass
-
-    @staticmethod
-    def update():
-        pass
-
-    @staticmethod
-    def get(id: str):
-        return RequestLogType()
-
-    @staticmethod
-    def get_list():
-        return RequestLogTypes()
-
-    @staticmethod
-    def get_list_by_requesting_users(requesting_users: List[str]):
-        return RequestLogTypes()
-
-
-class RequestAction(Enum):
-    new = "new"
-    modify = "modify"
-    delete = "delete"
-
-
-class RequestFlow:
-    @staticmethod
-    def get(id):
-        request = RequestRepository.get(id)
-        return request
-
-    @staticmethod
-    def get_list():
-        login_user = LoginUserRepository.get("")
-        if login_user:
-            requests = RequestRepository.get_list()
-        else:
-            users = UserRepository.get_list_by_authentication_user(login_user.id)
-            requests = RequestRepository.get_list_by_requesting_users(users.ids)
-        return requests
