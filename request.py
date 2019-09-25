@@ -1,66 +1,72 @@
 from enum import Enum
 from typing import List
+import functools
 
 
-class UserRole:
-    @property
-    def id(self):
-        return "001"
-
-    @property
-    def name(self):
-        return "DataAnalyst"
-
-    @property
-    def uri(self):
-        return "uri0"
+login_user = {}
 
 
 class Role(Enum):
-    ADMIN = 'Admin'
-    MANAGER = 'Manager'
-    DATA_ANALYST = 'DataAnalyst'
+    ADMIN = "admin"
+    MANAGER = "manager"
+    ANALYST = "analyst"
 
 
 class User:
-    def __init__(self):
-        self.content = {}
-        self.content['roles'] = [
-            {
-                'name': 'Admin',
-                'uris': ['uri1']
-            },
-            {
-                'name': 'Manager',
-                'uris': ['uri0', 'uri1']
-            },
-            {
-                'name': 'DataAnalyst',
-                'uris': ['uri0']
-            }
-        ]
-
-    def delete_role(self, user_role: UserRole):
-        updated_roles = []
-        for role in self.content['roles']:
-            if role['name'] == user_role.name:
-                deleted_uris = [uri for uri in role['uris'] if uri != user_role.uri]
-                if deleted_uris:
-                    updated_roles.append({'name': role['name'], 'uris': deleted_uris})
-                elif not deleted_uris and (user_role.name == Role.ADMIN.value or user_role.name == Role.MANAGER):
-                    updated_roles.append({'name': user_role.name})
-            else:
-                updated_roles.append({'name': role['name'], 'uris': role['uris']})
-        self.content['roles'] = updated_roles
+    pass
 
 
+class RequestUser:
+    def check_authority(self, user: User) -> bool:
+        return True
 
 
+class LoginUserRepository:
+    @staticmethod
+    def get():
+        return {"name": "admin", "age": 22}
 
-user = User()
-user_role = UserRole()
 
-print(user.content)
-user.delete_role(user_role)
-print(user.content)
+def except_handler(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            print(e)
+    return wrapper
+
+
+def authority(allowed_roles):
+    def _authority(func):
+        def wrapper(*args, **kwargs):
+            global login_user
+            login_user = LoginUserRepository.get()
+            if login_user['name'] not in allowed_roles:
+                raise Exception("Auth Error.")
+            func(*args, **kwargs)
+        return wrapper
+    return _authority
+
+
+@except_handler
+@authority(allowed_roles=[Role.ADMIN.value, Role.MANAGER.value])
+def get():
+    print("get")
+    print(login_user)
+
+
+@except_handler
+@authority(allowed_roles=[Role.ANALYST.value, Role.MANAGER.value])
+def post():
+    print("post")
+    print(login_user)
+
+    user = User()
+    request_user = RequestUser()
+    if request_user.check_authority(user) is False:
+        raise Exception()
+
+
+get()
+post()
 
