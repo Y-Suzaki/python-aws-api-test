@@ -1,0 +1,8 @@
+Route53:
+  Name: AAAAAA
+  ID: BBBBB
+Database:
+  DynamoDB:
+    Name: CCCC
+S3:
+  Deploy: ys-dev-web-sam-deploy
