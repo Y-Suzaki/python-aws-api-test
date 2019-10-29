@@ -1,0 +1,94 @@
+openapi: 3.0.1
+info:
+  title: Test API
+  description: It is an API for managing test information..
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+- url: http://localhost/v1
+tags:
+- name: employee
+  description: About employee infomation.
+paths:
+  /employees:
+    get:
+      tags:
+      - employee
+      summary: Find employee list.
+      description: Find employee list.
+      operationId: findEmployees
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/employees'
+        503:
+          description: Internal server error.
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: 200
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeesFunction.Arn}/invocations
+        passthroughBehavior: when_no_match
+        httpMethod: POST
+        type: aws_proxy
+  /employee/{id}:
+    get:
+      tags:
+      - employee
+      summary: Find employee.
+      description: Find employee.
+      operationId: findEmployee
+      parameters:
+      - name: id
+        in: path
+        description: Employee ID
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/employee'
+        503:
+          description: Internal server error.
+          content: {}
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: 200
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmployeeFunction.Arn}/invocations
+        passthroughBehavior: when_no_match
+        httpMethod: POST
+        type: aws_proxy
+components:
+  schemas:
+    employee:
+      required:
+      - name
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    employees:
+      type: array
+      items:
+        $ref: '#/components/schemas/employee'

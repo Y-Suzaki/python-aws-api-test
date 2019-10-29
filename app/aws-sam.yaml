@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: AWS SAM.
+
+Parameters:
+  AppNamePrefix:
+    Type: String
+    Default: ys-dev-web
+  ArtifactBucket:
+    Type: String
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: lambda-execute-policy
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: logs:CreateLogGroup
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*
+          - Effect: Allow
+            Action:
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AppNamePrefix}*:*
+
+  EmployeesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AppNamePrefix}-employees
+      RetentionInDays: 7
+
+  EmployeeLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${AppNamePrefix}-employee
+      RetentionInDays: 7
+
+  EmployeesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ${AppNamePrefix}-employees
+      Handler: employees.get_list
+      Runtime: python3.7
+      CodeUri:
+        Bucket: !Sub ${ArtifactBucket}
+        Key: employees.zip
+      Description: "Employees Function."
+      MemorySize: 128
+      Timeout: 15
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          DynamoDBTable: employee
+
+  EmployeeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ${AppNamePrefix}-employee
+      Handler: employee.get
+      Runtime: python3.7
+      CodeUri:
+        Bucket: !Sub ${ArtifactBucket}
+        Key: employees.zip
+      Description: "Employee Function."
+      MemorySize: 128
+      Timeout: 15
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          DynamoDBTable: employee
+
+  RestiApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: !Sub s3://${ArtifactBucket}/rest-api.yaml
