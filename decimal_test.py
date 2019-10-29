@@ -3,6 +3,7 @@ import boto3
 import json
 import json
 import decimal
+from decimal import Decimal
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
@@ -18,7 +19,7 @@ def lambda_handler(event, context):
     table = dynamodb.Table('Test')
 
     payload = {
-        'userId': 'A001',
+        'userId': 'A002',
         'name': 'tanaka',
         'age': 50,
         'points': [
@@ -26,8 +27,11 @@ def lambda_handler(event, context):
         ]
     }
 
-    table.put_item(Item=payload)
-    response = table.get_item(Key={'userId': 'A001'})
+    decimal_payload = json.loads(json.dumps(payload), parse_float=Decimal)
+    print(decimal_payload)
+
+    table.put_item(Item=decimal_payload)
+    response = table.get_item(Key={'userId': 'A002'})
 
     return {
         'statusCode': 200,
